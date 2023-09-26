@@ -1,10 +1,11 @@
 import Link from "next/link";
 
 import clsx from "clsx";
+import { IconType } from "react-icons/lib";
 
 interface MobileItemProps {
   href: string;
-  icon: any;
+  icon: IconType;
   active?: boolean;
   onClick?: () => void;
 }
