@@ -18,6 +18,7 @@ type Variant = "LOGIN" | "REGISTER";
 const AuthForm = () => {
   const session = useSession();
   const router = useRouter();
+  const [loading, setLoading] = useState<boolean>(false);
   const [variant, setVariant] = useState<Variant>("LOGIN");
 
   useEffect(() => {
@@ -47,6 +48,7 @@ const AuthForm = () => {
   });
 
   const onSubmit: SubmitHandler<FieldValues> = (data) => {
+    setLoading(true);
     if (variant === "REGISTER") {
       axios
         .post("/api/register", data)
@@ -58,6 +60,26 @@ const AuthForm = () => {
         )
         .then((callback) => {
           if (callback?.error) {
+            toast.error("Something went wrong!");
+          }
+
+          if (callback?.ok) {
+            router.push("/conversations");
+          }
+        })
+        .catch(() => {
+          toast.error("Email or name is already taken!");
+        })
+        .finally(() => setLoading(false));
+    }
+
+    if (variant === "LOGIN") {
+      signIn("credentials", {
+        ...data,
+        redirect: false,
+      })
+        .then((callback) => {
+          if (callback?.error) {
             toast.error("Invalid credentials!");
           }
 
@@ -65,29 +87,14 @@ const AuthForm = () => {
             router.push("/conversations");
           }
         })
-        .catch(() => toast.error("Something went wrong!"));
-    }
-
-    if (variant === "LOGIN") {
-      signIn("credentials", {
-        ...data,
-        redirect: false,
-      }).then((callback) => {
-        if (callback?.error) {
-          toast.error("Invalid credentials!");
-        }
-
-        if (callback?.ok) {
-          router.push("/conversations");
-        }
-      });
+        .finally(() => setLoading(false));
     }
   };
 
   const socialAction = (action: string) => {
     signIn(action, { redirect: false }).then((callback) => {
       if (callback?.error) {
-        toast.error("Invalid credentials!");
+        toast.error("Something went wrong!");
       }
 
       if (callback?.ok) {
@@ -136,7 +143,7 @@ const AuthForm = () => {
                 type="password"
               />
               <div>
-                <Button fullWidth type="submit">
+                <Button fullWidth type="submit" disabled={loading}>
                   {variant === "LOGIN" ? "Sign in" : "Register"}
                 </Button>
               </div>
@@ -193,7 +200,7 @@ const AuthForm = () => {
           </div>
         </div>
       )}
-      {session.status === "loading" && (
+      {(session.status === "loading" || session.status === "authenticated") && (
         <div className="m-auto">
           <ClipLoader
             color="black"

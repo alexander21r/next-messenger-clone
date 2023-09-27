@@ -26,7 +26,9 @@ const Button: React.FC<ButtonProps> = ({
       disabled={disabled}
       className={clsx(
         `
-        flex 
+        flex
+        disabled:cursor-not-allowed
+        disabled:opacity-50
         justify-center 
         rounded-md 
         px-3 
